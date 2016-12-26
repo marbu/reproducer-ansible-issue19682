@@ -1,0 +1,26 @@
+---
+- name: Playbook to reproduce issue with cleanup task callback
+  hosts: localhost
+  connection: local
+
+  tasks:
+
+   - name: Check that tmp file exists
+     file:
+       path=/tmp/reproducer-{{ 100 | random }}
+       state=touch
+     notify: ping-handler
+
+   # example based on https://docs.ansible.com/ansible/playbooks_blocks.html
+   - block:
+       - debug: msg='I execute normally'
+       - command: /bin/false
+     rescue:
+       - debug: msg='I caught an error'
+     always:
+       - debug: msg="This always executes" 
+
+  handlers:
+
+   - name: ping-handler
+     action: ping
